@@ -1,0 +1,95 @@
+# -*- coding: utf-8 -*-
+"""
+TestOpenDisplayImageColormap.py
+
+Created on Wed Sep 28 16:36:45 2016
+
+@author: slehar
+"""
+
+import Tkinter, tkFileDialog
+import matplotlib.image as mpimg
+#import numpy as np
+import matplotlib.pyplot as plt
+from   matplotlib.widgets import Slider
+#import matplotlib as mpl
+from matplotlib.colors import LinearSegmentedColormap
+import sys
+
+# Linear Segmented Colormap
+#cdictGray = {'red':   ((0.0, 0.0, 0.0),
+#                       (1.0, 1.0, 1.0)),
+#             'green': ((0.0, 0.0, 0.0),
+#                       (1.0, 1.0, 1.0)),
+#             'blue':  ((0.0, 0.0, 0.0),
+#                       (1.0, 1.0, 1.0))}
+#
+#mygraymap = LinearSegmentedColormap('graymap', cdictGray)
+
+
+root = Tkinter.Tk()
+#root.Font(family="Times", size=10, weight=tkFont.BOLD)
+root.withdraw()
+
+imgFile = tkFileDialog.askopenfilename(
+    title = 'Select image',
+    initialfile = 'Rover.png')
+
+
+# Open figure window
+winXSize = 6
+winYSize = 6
+plt.close('all')
+fig = plt.figure(figsize=(winXSize, winYSize))
+ax  = fig.add_axes([.1,.2,.8,.7])
+ax1 = fig.add_axes([.1,.05,.8,.1])
+ax1.set_xticks([])
+ax1.set_yticks([])
+
+# Keypress 'q' to quit callback function
+def press(event):
+    global ptList, data
+    sys.stdout.flush()
+    if event.key == 'q':
+        plt.close()
+
+# Connect keypress event to callback function
+fig.canvas.mpl_connect('key_press_event', press)
+
+img = mpimg.imread(imgFile)
+plt.sca(ax)
+imgplot = plt.imshow(img)
+imgplot.axes.set_xticks([])
+imgplot.axes.set_yticks([])
+
+slider1 = Slider(ax1, 'colormap', 0.0, 1.0, valinit=.5)
+
+def update(val):
+    print 'update %5.2f'%val
+#    plt.sca(ax)
+#    cdictGray = {'red':   ((0.0, 0.0, val),
+#                           (1.0, 1.0, val)),
+#                 'green': ((0.0, 0.0, val),
+#                           (1.0, 1.0, val)),
+#                 'blue':  ((0.0, 0.0, val),
+#                           (1.0, 1.0, val))}
+    
+#    graymap = LinearSegmentedColormap.from_list(
+#        'graymap', cdictGray)
+
+#    plt.set_cmap(graymap)
+    plt.pause(.001)
+#    fig.canvas.draw()
+    
+slider1.on_changed(update)
+
+plt.sca(ax)
+
+
+figmgr=plt.get_current_fig_manager()
+figmgr.canvas.manager.window.raise_()
+geom=figmgr.window.geometry()
+(xLoc,yLoc,dxWidth,dyHeight)=geom.getRect()
+figmgr.window.setGeometry(10,10,dxWidth,dyHeight)
+ 
+
