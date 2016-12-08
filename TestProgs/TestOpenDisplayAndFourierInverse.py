@@ -69,6 +69,11 @@ fourLog  = np.log(np.abs(fourShft))
 fourplot = plt.imshow(fourLog, cmap='gray',
                       vmin=fourLog.min(),
                       vmax=fourLog.max())
+                      
+# Fourier filtering
+dcVal = fourShft[hafY,hafX]
+fourShft[hafY-5:hafY+5, hafX-5:hafX+5] = 0.
+fourShft[hafY, hafX] = dcVal
 
 # Axes for Inverse Fourier Image
 axFourInv = fig.add_axes([.56, .2, .7/winAspect, .7])

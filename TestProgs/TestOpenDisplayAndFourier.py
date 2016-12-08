@@ -26,7 +26,7 @@ winAspect = winXSize/winYSize
 fig = plt.figure(figsize=(winXSize, winYSize))
 
 # Axes for Original Image
-axOrig = fig.add_axes([.1, .2, .7/winAspect, .7])
+axOrig = fig.add_axes([.1, .2, .7/winAspect, .8])
 axOrig.axes.set_xticks([])
 axOrig.axes.set_yticks([])
 

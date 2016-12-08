@@ -1,129 +1,154 @@
-import numpy as np
-from PIL import Image
+# -*- coding: utf-8 -*-
+"""
+FourInteractive.py
+
+Created on Wed Sep 28 16:36:45 2016
+
+@author: slehar
+"""
+
 import matplotlib.pyplot as plt
+from   matplotlib.widgets import Slider
+from   PIL import Image
+import Tkinter, tkFileDialog
+import numpy as np
+import numpy.ma as ma
 import sys
-import pdb
 
-#### read an image and return its data with double precision
-def readImage(filename):
-    im = Image.open(filename)
-#    data = np.zeros((width,height))
-    data = np.array(im)
-    return data.astype(float)  #float is double precision
-    
-#### generate sinusoidal image from scratch
-def generateImage(freq):
-    indexrow = np.linspace(0., 2.*np.pi*freq, num=128)
-#    sinrow = (np.sin(indexrow) + 1.) * 128.
-    sinrow = (np.sin(indexrow)) * 128.
-    img = []
-    for row in range(128):
-        img.append(sinrow)
-    return np.array(img)
-    
+# Global Variables
+rad1 = 0.
+rad2 = .15
 
-#### swap first<-->third, second<-->fourth quadrant
-def fftshift(data):
-# assuming data is numpy 2d array
-    nr = data.shape[0]
-    nc = data.shape[1]
-    assert (nr%2 == 0) & (nc%2 == 0)
+# Get image using finder dialog
+root = Tkinter.Tk()
+root.withdraw() # Hide the root window
+imgFile = tkFileDialog.askopenfilename(
+    title = 'Select image',
+    initialfile = 'Rover.png')
 
-    tmp = np.copy(data[0:nr/2,0:nc/2])
-    data[0:nr/2,0:nc/2] = np.copy(data[nr/2:,nc/2:])
-    data[nr/2:,nc/2:] = np.copy(tmp)
+# Open figure window
+winXSize = 18
+winYSize = 6
+winAspect = winXSize/winYSize
+plt.close('all')
+fig = plt.figure(figsize=(winXSize, winYSize))
 
-    tmp = np.copy(data[0:nr/2,nc/2:])
-    data[0:nr/2,nc/2:] = np.copy(data[nr/2:,0:nc/2])
-    data[nr/2:,0:nc/2] = np.copy(tmp)
+# Keypress 'q' to quit callback function
+def press(event):
+    global ptList, data
+    sys.stdout.flush()
+    if event.key == 'q':
+        plt.close()
 
-#### normalize the FFT
-def normalizefft(data):
-    fftshift(data)
-    #ndata = np.log(np.absolute(data)+1)
-    ndata = np.absolute(data)
-    ndata = ndata*255/ndata.max()
+# Connect keypress event to callback function
+fig.canvas.mpl_connect('key_press_event', press)
 
-    return ndata
+# Axes for Original Image
+axOrig = fig.add_axes([.05, .2, .7/winAspect, .7])
+axOrig.axes.set_xticks([])
+axOrig.axes.set_yticks([])
+axOrig.set_title('Original')
 
-#### write image
-def writeImage(data,filename):
-    im = Image.fromarray(data)
-    im.save(filename)
+# Read image and display
+imgPil = Image.open(imgFile).convert('LA')
+imgNp = np.array(imgPil.convert('L'))/255.
+ySize, xSize = imgNp.shape
+hafY, hafX = int(ySize/2), int(xSize/2)
+imgplot = plt.imshow(imgPil, cmap='gray')
+
+# Axes for Fourier Image
+axFour = fig.add_axes([.3, .2, .7/winAspect, .7])
+axFour.axes.set_xticks([])
+axFour.axes.set_yticks([])
+axFour.set_title('Fourier')
+
+# Fourier Transform
+fourImg  = np.fft.fft2(imgNp)
+fourShft = np.fft.fftshift(fourImg)
+fourLog  = np.log(np.abs(fourShft))
+
+fourPlot = plt.imshow(fourLog, cmap='gray',
+                      vmin=fourLog.min(),
+                      vmax=fourLog.max())
+plt.pause(.001)
+
+#### Fourier Filtering ####
+yy, xx = np.mgrid[-hafY:hafY, -hafX:hafX]
+distImg = np.sqrt(xx**2 + yy**2)
+maskImg = (distImg < (rad2 * xSize))
+xmask = ma.make_mask(maskImg)
+filtImg = fourShft * xmask
+filtLog = np.log(np.maximum(np.abs(filtImg),1.))
+
+fourPlot = plt.imshow(filtLog, cmap='gray')
+plt.pause(.001)
+
+# Axes for Inverse Fourier Image
+axFourInv = fig.add_axes([.56, .2, .7/winAspect, .7])
+axFourInv.axes.set_xticks([])
+axFourInv.axes.set_yticks([])
+axFourInv.set_title('Inverse Fourier')
+
+# Inverse Fourier Transform
+fourIshft = np.fft.ifftshift(filtImg)
+fourInv  = np.fft.ifft2(fourIshft)
+fourReal = np.real(fourInv)
+invPlot = plt.imshow(fourReal, cmap='gray')
+
+# Filter radius sliders
+#axSlider1 = plt.axes([0.3, 0.125, 0.234, 0.04])
+axSlider1 = fig.add_axes([0.3, 0.125, 0.234, 0.04])
+axSlider1.set_xticks([])
+axSlider1.set_yticks([])
+
+axSlider2 = plt.axes([0.3, 0.05, 0.237, 0.04])
+axSlider2 = fig.add_axes([0.3, 0.05, 0.237, 0.04])
+axSlider2.set_xticks([])
+axSlider2.set_yticks([])
+
+slider1 = Slider(axSlider1, 'r1', 0.0, xSize, valinit=xSize*rad1)
+slider2 = Slider(axSlider2, 'r2', 0.0, xSize, valinit=xSize*rad2)
+
+def update(val):
+    global rad1, rad2, filtImg
+    plt.sca(axFour)
+    rad1 = slider1.val
+    rad2 = slider2.val
+    mask1 = (distImg > rad1)
+    mask2 = (distImg < rad2)
+    maskImg = np.logical_and(mask1, mask2)
+    maskImg[hafY,hafX] = True
+    xmask = ma.make_mask(maskImg)
+    filtImg = fourShft * xmask
+    filtLog = np.log(np.maximum(np.abs(filtImg),1.))
+    fourPlot.set_data(filtLog)
+    plt.sca(axFourInv)    
+    fourIshft = np.fft.ifftshift(filtImg)
+    fourInv  = np.fft.ifft2(fourIshft)
+    fourReal = np.real(fourInv)
+    invPlot = plt.imshow(fourReal, cmap='gray')       
+    plt.pause(.001)
+
+#    fig.canvas.draw()
+slider1.on_changed(update)
+slider2.on_changed(update)
+
+# Show image
+plt.ion()
+plt.sca(axFour)
+#plt.pause(.001)
+plt.show()
+
+#for ii in range(5):
+#    print 'Calling update(%1d)'%ii
+#    update(ii)
 
 
-#### fft
-def fft2d(data):
-    
-#    nr = data.shape[0]
-#    nc = data.shape[1]
-#    ndata = np.zeros((nr,nc),dtype=complex)
-#
-#    for i in range(nr):
-#        ndata[i,:] = np.fft.fft(data[i,:])
-#
-#    for i in range(nc):
-#        ndata[:,i] = np.fft.fft(ndata[:,i])
-
-
-    ndata = np.fft.fft2(data)
-    import code; code.interact(local=locals())
-
-    return ndata
-
-#### main
-def main():
-
-
-    ####### Open figure and set axes 1 ########
-    plt.close('all')
-    fig = plt.figure(figsize=(10,8))
-    fig.canvas.set_window_title('fft1')
-    
-    #### Main axes ####
-    ax = fig.add_axes([.1, .225, .7, .75])
-#    ax.set_xticks([])
-#    ax.set_yticks([])
-    ax.set_xlim([0, 128])
-    ax.set_ylim([0,255])
-
-
-    outputname = "sin_fft.tif"
-#    data = readImage(sys.argv[1])
-    data = generateImage(4.0)
-    ax.plot(data[64])
-    print "type(data) = "+str(data.dtype)
-    for j in range(63,66):
-        for i in range(59,70):
-            print '%05.2f '%data[j][i],
-        print
-    fftdata = np.fft.fft2(data)
-   # fftdata1 = fft2d(data)
-   # print np.allclose(fftdata,fftdata1)
-    ndata = normalizefft(fftdata)
-    ax.plot(ndata[64])
-    for j in range(63,66):
-        for i in range(59,70):
-            print '%05.2f '%ndata[j][i],
-        print
-    ndata = ndata.astype('uint8')
-#    pdb.set_trace()
-    writeImage(ndata,outputname)
-
-    # Show plot
-    plt.show()
-
-    # Gef fig manager to raise window in top left corner (10,10)
-    figmgr=plt.get_current_fig_manager()
-    figmgr.canvas.manager.window.raise_()
-    geom=figmgr.window.geometry()
-    (xLoc,yLoc,dxWidth,dyHeight)=geom.getRect()
-    figmgr.window.setGeometry(10,10,dxWidth,dyHeight)
-
-
-
-
-#### main call
-if __name__ == "__main__":
-    main()
+# Pop fig window to top]]
+figmgr=plt.get_current_fig_manager()
+figmgr.canvas.manager.window.raise_()
+geom=figmgr.window.geometry()
+(xLoc,yLoc,dxWidth,dyHeight)=geom.getRect()
+figmgr.window.setGeometry(10,10,dxWidth,dyHeight)
+ 
 

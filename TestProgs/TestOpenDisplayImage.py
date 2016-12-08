@@ -21,8 +21,8 @@ imgFile = tkFileDialog.askopenfilename(title='Select image')
 
 img = mpimg.imread(imgFile)
 imgplot = plt.imshow(img)
-imgplot.axes.set_xticks([])
-imgplot.axes.set_yticks([])
+#imgplot.axes.set_xticks([])
+#imgplot.axes.set_yticks([])
 
 figmgr=plt.get_current_fig_manager()
 figmgr.canvas.manager.window.raise_()

@@ -20,8 +20,8 @@ def maxmin(img):
     print '(max, min) = (%5.2f, %5.2f)'%(img.max(),img.min())
 
 # Global Variables
-rad1 = .15
-rad2 = 0.
+rad1 = 0.
+rad2 = .15
 
 # Get image using finder dialog
 root = Tkinter.Tk()
@@ -57,7 +57,6 @@ axOrig.set_title('Original')
 imgPil = Image.open(imgFile).convert('LA')
 imgNp = np.array(imgPil.convert('L'))/255.
 ySize, xSize = imgNp.shape
-
 hafY, hafX = int(ySize/2), int(xSize/2)
 imgplot = plt.imshow(imgPil, cmap='gray')
 
@@ -77,26 +76,16 @@ fourPlot = plt.imshow(fourLog, cmap='gray',
                       vmax=fourLog.max())
 plt.pause(.001)
 
-plt.pause(3.)
-
-# Fourier Filtering
+#### Fourier Filtering ####
 yy, xx = np.mgrid[-hafY:hafY, -hafX:hafX]
 distImg = np.sqrt(xx**2 + yy**2)
-maskImg = (distImg < (rad1 * xSize))
+maskImg = (distImg < (rad2 * xSize))
 xmask = ma.make_mask(maskImg)
+filtImg = fourShft * xmask
+#filtImg[filtImg < 0.] = 0.
+filtLog = np.log(np.maximum(np.abs(filtImg),1.))
 
-#maskImg[hafY, hafX] = True
-filtImg = np.real(fourShft) * xmask
-
-filtImg[filtImg < 0.] = 0.
-fourLog1 = np.log(np.abs(filtImg))
-
-#fourPlot = plt.imshow(magSpect, cmap='gray',
-#                      vmin=magSpect.min(),
-#                      vmax=magSpect.max())
-fourPlot = plt.imshow(fourLog1, cmap='gray',
-                      vmin=fourLog1.min(),
-                      vmax=fourLog1.max())
+fourPlot = plt.imshow(filtLog, cmap='gray')
 plt.pause(.001)
 
 # Axes for Inverse Fourier Image
@@ -106,7 +95,7 @@ axFourInv.axes.set_yticks([])
 axFourInv.set_title('Inverse Fourier')
 
 # Inverse Fourier Transform
-fourIshft = np.fft.ifftshift(fourShft)
+fourIshft = np.fft.ifftshift(filtImg)
 fourInv  = np.fft.ifft2(fourIshft)
 fourReal = np.real(fourInv)
 invPlot = plt.imshow(fourReal, cmap='gray')
@@ -126,26 +115,23 @@ slider1 = Slider(axSlider1, 'r1', 0.0, xSize, valinit=xSize*rad1)
 slider2 = Slider(axSlider2, 'r2', 0.0, xSize, valinit=xSize*rad2)
 
 def update(val):
-    global rad1, filtImg
-#    plt.sca(axFour)
+    global rad1, rad2, filtImg
+    plt.sca(axFour)
     rad1 = slider1.val
-    print 'rad1 = %5.2f'%rad1
     rad2 = slider2.val
-    maskImg = (distImg < (rad1 * xSize))
-    print maskImg[180,150:170]
+    mask1 = (distImg > rad1)
+    mask2 = (distImg < rad2)
+    maskImg = np.logical_and(mask1, mask2)
+    maskImg[hafY,hafX] = True
     xmask = ma.make_mask(maskImg)
-#    maskImg[hafY,hafX] = False
-    filtImg[filtImg < 0.] = 0.
     filtImg = fourShft * xmask
-    fourLog2 = np.log(np.abs(filtImg))
-    fourLog2[hafY:hafY+20,hafX:hafX+20] = val
-#    print newSpect[hafY-4:hafY+5, hafX-4:hafX+5]
-#    fourPlot.set_data(filtImg)
-    fourPlot.set_data(fourLog2)
-    fourPlot.set_clim(fourLog2.min(), fourLog2.max())
-    plt.draw()
-#    plt.show(block=False)
-#    plt.show()
+    filtLog = np.log(np.maximum(np.abs(filtImg),1.))
+    fourPlot.set_data(filtLog)
+    plt.sca(axFourInv)    
+    fourIshft = np.fft.ifftshift(filtImg)
+    fourInv  = np.fft.ifft2(fourIshft)
+    fourReal = np.real(fourInv)
+    invPlot = plt.imshow(fourReal, cmap='gray')       
     plt.pause(.001)
 
 #    fig.canvas.draw()
