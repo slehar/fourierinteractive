@@ -23,15 +23,15 @@ rad2 = .15
 root = Tkinter.Tk()
 root.withdraw() # Hide the root window
 imgFile = tkFileDialog.askopenfilename(
-    title = 'Select image',
     initialfile = 'Rover.png')
 
 # Open figure window
-winXSize = 18
+winXSize = 16
 winYSize = 6
 winAspect = winXSize/winYSize
 plt.close('all')
 fig = plt.figure(figsize=(winXSize, winYSize))
+fig.canvas.set_window_title('Fourier Interactive')
 
 # Keypress 'q' to quit callback function
 def press(event):
