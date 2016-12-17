@@ -45,9 +45,6 @@ def press(event):
 # Connect keypress event to callback function
 fig.canvas.mpl_connect('key_press_event', press)
 
-
-
-
 # Lock Sliders Checkbox
 rax = plt.axes([0.2, 0.05, 0.1/winAspect, 0.1])
 check = CheckButtons(rax, ['Lock'], [False])
@@ -56,17 +53,10 @@ def func(label):
     global lockSliders
     if   label == 'Lock':
         print 'Toggle lock'
+        lockSliders = check.lines[0][0].get_visible()
     plt.draw()
     
 check.on_clicked(func)
-
-
-
-
-
-
-
-
 
 # Axes for Original Image
 axOrig = fig.add_axes([.05, .2, .7/winAspect, .7])
@@ -116,12 +106,11 @@ axFourInv.set_title('Inverse Fourier')
 
 # Inverse Fourier Transform
 fourIshft = np.fft.ifftshift(filtImg)
-fourInv  = np.fft.ifft2(fourIshft)
-fourReal = np.real(fourInv)
+fourInv   = np.fft.ifft2(fourIshft)
+fourReal  = np.real(fourInv)
 invPlot = plt.imshow(fourReal, cmap='gray')
 
 # Filter radius sliders
-#axSlider1 = plt.axes([0.3, 0.125, 0.234, 0.04])
 axSlider1 = fig.add_axes([0.3, 0.125, 0.234, 0.04])
 axSlider1.set_xticks([])
 axSlider1.set_yticks([])
@@ -133,12 +122,12 @@ axSlider2.set_yticks([])
 
 slider1 = Slider(axSlider1, 'r1', 0.0, xSize, valinit=xSize*rad1)
 slider2 = Slider(axSlider2, 'r2', 0.0, xSize, valinit=xSize*rad2)
+rad1, rad2 = slider1.val, slider2.val
 
-def update(val):
-    global rad1, rad2, filtImg
+def update():
+    global filtImg
+#    print 'frame: %r'%sys._getframe(1).f_code.co_name
     plt.sca(axFour)
-    rad1 = slider1.val
-    rad2 = slider2.val
     mask1 = (distImg > rad1)
     mask2 = (distImg < rad2)
     maskImg = np.logical_and(mask1, mask2)
@@ -154,9 +143,21 @@ def update(val):
     invPlot = plt.imshow(fourReal, cmap='gray')       
     plt.pause(.001)
 
+
+def update1(val):
+    global rad1
+    rad1 = slider1.val
+    update()
+
+def update2(val):
+    global rad2
+    rad2 = slider2.val
+    update()
+
+
 #    fig.canvas.draw()
-slider1.on_changed(update)
-slider2.on_changed(update)
+slider1.on_changed(update1)
+slider2.on_changed(update2)
 
 # Show image
 plt.ion()
