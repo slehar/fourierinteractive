@@ -19,7 +19,7 @@ import sys
 # Global Variables
 rad1 = 0.
 rad2 = .15
-lockSliders = False
+slidersLocked = False
 
 # Get image using finder dialog
 root = Tkinter.Tk()
@@ -50,10 +50,10 @@ rax = plt.axes([0.2, 0.05, 0.1/winAspect, 0.1])
 check = CheckButtons(rax, ['Lock'], [False])
 
 def func(label):
-    global lockSliders
+    global slidersLocked
+    
     if   label == 'Lock':
-        print 'Toggle lock'
-        lockSliders = check.lines[0][0].get_visible()
+        slidersLocked = check.lines[0][0].get_visible()
     plt.draw()
     
 check.on_clicked(func)
@@ -151,7 +151,11 @@ def update1(val):
 
 def update2(val):
     global rad2
+    diff = max((rad2 - rad1), 0.)
     rad2 = slider2.val
+    if slidersLocked:
+        val1 = rad2 - diff
+        slider1.set_val(val1)
     update()
 
 
