@@ -9,6 +9,7 @@ Created on Wed Sep 28 16:36:45 2016
 
 import matplotlib.pyplot as plt
 from   matplotlib.widgets import Slider
+from   matplotlib.widgets import CheckButtons
 from   PIL import Image
 import Tkinter, tkFileDialog
 import numpy as np
@@ -18,6 +19,7 @@ import sys
 # Global Variables
 rad1 = 0.
 rad2 = .15
+lockSliders = False
 
 # Get image using finder dialog
 root = Tkinter.Tk()
@@ -42,6 +44,29 @@ def press(event):
 
 # Connect keypress event to callback function
 fig.canvas.mpl_connect('key_press_event', press)
+
+
+
+
+# Lock Sliders Checkbox
+rax = plt.axes([0.2, 0.05, 0.1/winAspect, 0.1])
+check = CheckButtons(rax, ['Lock'], [False])
+
+def func(label):
+    global lockSliders
+    if   label == 'Lock':
+        print 'Toggle lock'
+    plt.draw()
+    
+check.on_clicked(func)
+
+
+
+
+
+
+
+
 
 # Axes for Original Image
 axOrig = fig.add_axes([.05, .2, .7/winAspect, .7])
