@@ -20,6 +20,8 @@ import sys
 rad1 = 0.
 rad2 = .15
 slidersLocked = False
+angle = 0.
+angleThresh =  -1.
 
 # Get image using finder dialog
 root = Tkinter.Tk()
@@ -90,6 +92,10 @@ plt.pause(.001)
 #### Fourier Filtering ####
 yy, xx = np.mgrid[-hafY:hafY, -hafX:hafX]
 distImg = np.sqrt(xx**2 + yy**2)
+
+angleImg = np.arctan2(yy,xx)
+angleImgFlip = np.fliplr(np.flipud(angleImg))
+
 maskImg = (distImg < (rad2 * xSize))
 xmask = ma.make_mask(maskImg)
 filtImg = fourShft * xmask
@@ -115,7 +121,7 @@ axSlider1 = fig.add_axes([0.3, 0.125, 0.234, 0.04])
 axSlider1.set_xticks([])
 axSlider1.set_yticks([])
 
-axSlider2 = plt.axes([0.3, 0.05, 0.237, 0.04])
+#axSlider2 = plt.axes([0.3, 0.05, 0.237, 0.04])
 axSlider2 = fig.add_axes([0.3, 0.05, 0.237, 0.04])
 axSlider2.set_xticks([])
 axSlider2.set_yticks([])
@@ -124,13 +130,28 @@ slider1 = Slider(axSlider1, 'r1', 0.0, xSize, valinit=xSize*rad1)
 slider2 = Slider(axSlider2, 'r2', 0.0, xSize, valinit=xSize*rad2)
 rad1, rad2 = slider1.val, slider2.val
 
+# Filter angular sliders
+axSlider3 = fig.add_axes([0.7, 0.125, 0.234, 0.04])
+axSlider3.set_xticks([])
+axSlider3.set_yticks([])
+
+#axSlider4 = plt.axes([0.7, 0.05, 0.237, 0.04])
+axSlider4 = fig.add_axes([0.7, 0.05, 0.237, 0.04])
+axSlider4.set_xticks([])
+axSlider4.set_yticks([])
+
+slider3 = Slider(axSlider3, 'angle',  -np.pi, np.pi, valinit=0)
+slider4 = Slider(axSlider4, 'thresh', -1., 1., valinit=-1.)
+angle, angleThresh = slider3.val, slider4.val
+
 def update():
     global filtImg
-#    print 'frame: %r'%sys._getframe(1).f_code.co_name
     plt.sca(axFour)
-    mask1 = (distImg > rad1)
-    mask2 = (distImg < rad2)
-    maskImg = np.logical_and(mask1, mask2)
+    maskR1 = (distImg > rad1)
+    maskR2 = (distImg < rad2)
+    maskRadial = np.logical_and(maskR1, maskR2)
+    maskAngle = (np.sin(angleImg*2. + angle) >= angleThresh)          
+    maskImg = np.logical_and(maskAngle, maskRadial)  
     maskImg[hafY,hafX] = True
     xmask = ma.make_mask(maskImg)
     filtImg = fourShft * xmask
@@ -142,7 +163,6 @@ def update():
     fourReal = np.real(fourInv)
     invPlot = plt.imshow(fourReal, cmap='gray')       
     plt.pause(.001)
-
 
 def update1(val):
     global rad1
@@ -158,21 +178,27 @@ def update2(val):
         slider1.set_val(val1)
     update()
 
+def update3(val):
+    global angle
+    angle = slider3.val
+    update()
+
+def update4(val):
+    global angleThresh
+    angleThresh = slider4.val
+    update()
 
 #    fig.canvas.draw()
 slider1.on_changed(update1)
 slider2.on_changed(update2)
+slider3.on_changed(update3)
+slider4.on_changed(update4)
 
 # Show image
 plt.ion()
 plt.sca(axFour)
 #plt.pause(.001)
 plt.show()
-
-#for ii in range(5):
-#    print 'Calling update(%1d)'%ii
-#    update(ii)
-
 
 # Pop fig window to top]]
 figmgr=plt.get_current_fig_manager()
