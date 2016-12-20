@@ -11,15 +11,14 @@ import matplotlib.pyplot as plt
 from   matplotlib.widgets import Slider
 from   matplotlib.widgets import CheckButtons
 import numpy as np
-import numpy.ma as ma
 import sys
 
 # Global Variables
-rad1 = 0.
-rad2 = .15
+freqRad = 0.
+freqCirc = 0.
 slidersLocked = False
-angle = 0.
-angleThresh =  -1.
+sumVal  = .5
+prodVal = .5
 
 
 # Open figure window
@@ -52,26 +51,48 @@ def func(label):
     
 check.on_clicked(func)
 
-# Axes for  Image
+# Image dimensions
 ySize, xSize = (512,512)
 hafY, hafX = int(ySize/2), int(xSize/2)
-axOrig = fig.add_axes([.3, .2, .7/winAspect, .7])
-axOrig.axes.set_xticks([])
-axOrig.axes.set_yticks([])
-axOrig.set_title('Bezier')
+
+
+# Axes for  Radial
+axRad = fig.add_axes([.1, .2, .5/winAspect, .7])
+axRad.axes.set_xticks([])
+axRad.axes.set_yticks([])
+axRad.set_title('Radial')
+
+# Axes for  Circum
+axCir = fig.add_axes([.4, .2, .5/winAspect, .7])
+axCir.axes.set_xticks([])
+axCir.axes.set_yticks([])
+axCir.set_title('Circumf')
+
+# Axes for Mask
+axMask = fig.add_axes([.7, .2, .5/winAspect, .7])
+axMask.axes.set_xticks([])
+axMask.axes.set_yticks([])
+axMask.set_title('Mask')
 
 
 #### Bezier ####
 yy, xx = np.mgrid[-hafY:hafY, -hafX:hafX]
+
 distImg = np.sqrt(xx**2 + yy**2)
+radialImg = np.sin(distImg/10.)
+plt.sca(axRad)
+radialPlot = plt.imshow(radialImg, cmap='gray')
 
 angleImg = np.arctan2(yy,xx)
-angleImgFlip = np.fliplr(np.flipud(angleImg))
+circumImg = np.sin(angleImg*10.)
+plt.sca(axCir)
+circPlot = plt.imshow(circumImg, cmap='gray')
 
-maskImg = (distImg < (rad2 * xSize))
-xmask = ma.make_mask(maskImg)
+multImg = (radialImg * circumImg)
+sumImg  = (radialImg + circumImg)
 
-maskPlot = plt.imshow(maskImg, cmap='gray', origin='lower')
+plt.sca(axMask)
+mergePlot = plt.imshow(multImg, cmap='gray', origin='lower')
 
 # Filter radius sliders
 axSlider1 = fig.add_axes([0.3, 0.125, 0.234, 0.04])
@@ -83,9 +104,9 @@ axSlider2 = fig.add_axes([0.3, 0.05, 0.237, 0.04])
 axSlider2.set_xticks([])
 axSlider2.set_yticks([])
 
-slider1 = Slider(axSlider1, 'r1', 0.0, xSize, valinit=xSize*rad1)
-slider2 = Slider(axSlider2, 'r2', 0.0, xSize, valinit=xSize*rad2)
-rad1, rad2 = slider1.val, slider2.val
+slider1 = Slider(axSlider1, 'r1', 0.0, 50., valinit=25.)
+slider2 = Slider(axSlider2, 'r2', 0.0, 1., valinit=.5)
+freqRad, freqCirc = slider1.val, slider2.val
 
 # Filter angular sliders
 axSlider3 = fig.add_axes([0.7, 0.125, 0.234, 0.04])
@@ -97,43 +118,46 @@ axSlider4 = fig.add_axes([0.7, 0.05, 0.237, 0.04])
 axSlider4.set_xticks([])
 axSlider4.set_yticks([])
 
-slider3 = Slider(axSlider3, 'angle',  -np.pi, np.pi, valinit=0)
-slider4 = Slider(axSlider4, 'thresh', -1., 1., valinit=-1.)
-angle, angleThresh = slider3.val, slider4.val
+slider3 = Slider(axSlider3, 'sum',  0., 1., valinit=.5)
+slider4 = Slider(axSlider4, 'product', 0., 1., valinit=.5)
+sumVal, prodVal = slider3.val, slider4.val
 
 def update():
-    global filtImg
-    maskR1 = (distImg > rad1)
-    maskR2 = (distImg < rad2)
-    maskRadial = np.logical_and(maskR1, maskR2)
-    maskAngle = (np.sin(angleImg*2. + angle) >= angleThresh)          
-    maskImg = np.logical_and(maskAngle, maskRadial)  
-    xmask = ma.make_mask(maskImg)
-    maskPlot.set_data(xmask)
+    radialImg = np.sin(distImg/freqRad)
+    plt.sca(axRad)
+    radialPlot.set_data(radialImg)
+
+    circImg = np.sin(angleImg/freqCirc)
+    plt.sca(axCir)
+    circPlot.set_data(circImg)
+
+    sumImg  = (radialImg + circImg)
+    prodImg = (radialImg * circImg)
+#    mergeImg = circImg + radialImg
+    mergeImg = (sumVal * sumImg) + (prodVal * prodImg)
+
+    plt.sca(axMask)
+    mergePlot.set_data(mergeImg)
     plt.pause(.001)
 
 def update1(val):
-    global rad1
-    rad1 = slider1.val
+    global freqRad
+    freqRad = slider1.val
     update()
 
 def update2(val):
-    global rad2
-    diff = max((rad2 - rad1), 0.)
-    rad2 = slider2.val
-    if slidersLocked:
-        val1 = rad2 - diff
-        slider1.set_val(val1)
+    global freqCirc
+    freqCirc = slider2.val
     update()
 
 def update3(val):
-    global angle
-    angle = slider3.val
+    global sumVal
+    sumVal = slider3.val
     update()
 
 def update4(val):
-    global angleThresh
-    angleThresh = slider4.val
+    global prodVal
+    prodVal = slider4.val
     update()
 
 #    fig.canvas.draw()
