@@ -148,11 +148,21 @@ def update1(val):
     update()
 
 def update2(val):
+#    global freqCirc
+#    freqCirc = slider2.val
+#    update()
+
     global freqCirc
-    steppedVal = float(int(slider2.val * 1000.))*2.*np.pi/1000.
-    freqCirc = steppedVal
-    print 'freqCirc = %r'%freqCirc
+    diff = max((freqRad - freqCirc), 0.)
+    freqCirc = slider2.val
+    if slidersLocked:
+        val1 = freqCirc - diff
+        slider1.set_val(val1)
     update()
+
+
+
+
 
 def update3(val):
     global sumVal
