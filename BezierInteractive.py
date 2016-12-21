@@ -2,6 +2,11 @@
 """
 BezierInteractive.py
 
+Not actually a true Bezier curve, this is an interactive exploration
+of Radial and Circumferential periodicity, allowing the radial/circm
+frequency to be adjusted by sliders, and the radial and circm images
+are combined additively and multiplicatively.
+
 Created on Mon Dec 19 09:37:14 2016
 
 @author: slehar
@@ -19,7 +24,6 @@ freqCirc = 0.
 slidersLocked = False
 sumVal  = .5
 prodVal = .5
-
 
 # Open figure window
 winXSize = 16
@@ -54,7 +58,6 @@ check.on_clicked(func)
 # Image dimensions
 ySize, xSize = (512,512)
 hafY, hafX = int(ySize/2), int(xSize/2)
-
 
 # Axes for  Radial
 axRad = fig.add_axes([.1, .2, .5/winAspect, .7])
@@ -99,13 +102,12 @@ axSlider1 = fig.add_axes([0.3, 0.125, 0.234, 0.04])
 axSlider1.set_xticks([])
 axSlider1.set_yticks([])
 
-#axSlider2 = plt.axes([0.3, 0.05, 0.237, 0.04])
 axSlider2 = fig.add_axes([0.3, 0.05, 0.237, 0.04])
 axSlider2.set_xticks([])
 axSlider2.set_yticks([])
 
-slider1 = Slider(axSlider1, 'r1', 0.0, 50., valinit=25.)
-slider2 = Slider(axSlider2, 'r2', 0.0, 1., valinit=.5)
+slider1 = Slider(axSlider1, 'radial', 0.0, 50., valinit=25.)
+slider2 = Slider(axSlider2, 'circum', 0.0, 20., valinit=10.)
 freqRad, freqCirc = slider1.val, slider2.val
 
 # Filter angular sliders
@@ -123,17 +125,17 @@ slider4 = Slider(axSlider4, 'product', 0., 1., valinit=.5)
 sumVal, prodVal = slider3.val, slider4.val
 
 def update():
+    
     radialImg = np.sin(distImg/freqRad)
     plt.sca(axRad)
     radialPlot.set_data(radialImg)
 
-    circImg = np.sin(angleImg/freqCirc)
+    circImg = np.sin(angleImg * float(int(freqCirc)))
     plt.sca(axCir)
     circPlot.set_data(circImg)
 
     sumImg  = (radialImg + circImg)
     prodImg = (radialImg * circImg)
-#    mergeImg = circImg + radialImg
     mergeImg = (sumVal * sumImg) + (prodVal * prodImg)
 
     plt.sca(axMask)
@@ -147,7 +149,9 @@ def update1(val):
 
 def update2(val):
     global freqCirc
-    freqCirc = slider2.val
+    steppedVal = float(int(slider2.val * 1000.))*2.*np.pi/1000.
+    freqCirc = steppedVal
+    print 'freqCirc = %r'%freqCirc
     update()
 
 def update3(val):
