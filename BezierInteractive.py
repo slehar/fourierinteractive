@@ -31,7 +31,7 @@ winYSize = 6
 winAspect = winXSize/winYSize
 plt.close('all')
 fig = plt.figure(figsize=(winXSize, winYSize))
-fig.canvas.set_window_title('Fourier Interactive')
+fig.canvas.set_window_title('Bezier Interactive')
 
 # Keypress 'q' to quit callback function
 def press(event):
