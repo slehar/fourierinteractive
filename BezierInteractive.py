@@ -19,8 +19,8 @@ import numpy as np
 import sys
 
 # Global Variables
-freqRad = 0.
-freqCirc = 0.
+freqRad = 25.
+freqCirc = 10.
 slidersLocked = False
 sumVal  = .5
 prodVal = .5
@@ -82,12 +82,12 @@ axMask.set_title('Mask')
 yy, xx = np.mgrid[-hafY:hafY, -hafX:hafX]
 
 distImg = np.sqrt(xx**2 + yy**2)
-radialImg = np.sin(distImg/10.)
+radialImg = np.cos(distImg / float(int(freqRad)))
 plt.sca(axRad)
 radialPlot = plt.imshow(radialImg, cmap='gray')
 
 angleImg = np.arctan2(yy,xx)
-circumImg = np.sin(angleImg*10.)
+circumImg = np.cos(angleImg * float(int(freqCirc)))
 plt.sca(axCir)
 circPlot = plt.imshow(circumImg, cmap='gray')
 
