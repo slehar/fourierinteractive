@@ -126,11 +126,12 @@ sumVal, prodVal = slider3.val, slider4.val
 
 def update():
     
-    radialImg = np.sin(distImg/freqRad)
+#    radialImg = np.sin(distImg/freqRad)
+    radialImg = np.cos(distImg / float(int(freqRad)))
     plt.sca(axRad)
     radialPlot.set_data(radialImg)
 
-    circImg = np.sin(angleImg * float(int(freqCirc)))
+    circImg = np.cos(angleImg * float(int(freqCirc)))
     plt.sca(axCir)
     circPlot.set_data(circImg)
 
@@ -148,10 +149,6 @@ def update1(val):
     update()
 
 def update2(val):
-#    global freqCirc
-#    freqCirc = slider2.val
-#    update()
-
     global freqCirc
     diff = max((freqRad - freqCirc), 0.)
     freqCirc = slider2.val
@@ -159,10 +156,6 @@ def update2(val):
         val1 = freqCirc - diff
         slider1.set_val(val1)
     update()
-
-
-
-
 
 def update3(val):
     global sumVal
