@@ -126,7 +126,6 @@ sumVal, prodVal = slider3.val, slider4.val
 
 def update():
     
-#    radialImg = np.sin(distImg/freqRad)
     radialImg = np.cos(distImg / float(int(freqRad)))
     plt.sca(axRad)
     radialPlot.set_data(radialImg)
