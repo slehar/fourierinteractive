@@ -143,7 +143,7 @@ axSlider4.set_xticks([])
 axSlider4.set_yticks([])
 
 slider3 = Slider(axSlider3, 'angle',  -np.pi, np.pi, valinit=0)
-slider4 = Slider(axSlider4, 'thresh', -1., 1., valinit=-1.)
+slider4 = Slider(axSlider4, 'thresh', -1., 1., valinit=0.)
 angle, thresh = slider3.val, slider4.val
 
 def update():
