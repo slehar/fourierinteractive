@@ -20,7 +20,7 @@ import sys
 #rad1 = 0.
 #rad2 = .15
 freqRad = 25.
-freqCirc = 10.
+freqAng = 10.
 slidersLocked = False
 angle = 0.
 thresh =  -1.
@@ -37,7 +37,7 @@ winYSize = 6
 winAspect = winXSize/winYSize
 plt.close('all')
 fig = plt.figure(figsize=(winXSize, winYSize))
-fig.canvas.set_window_title('Fourier Interactive')
+fig.canvas.set_window_title('Fourier Interactive Harmonic')
 
 # Keypress 'q' to quit callback function
 def press(event):
@@ -91,13 +91,19 @@ fourPlot = plt.imshow(fourLog, cmap='gray',
                       vmax=fourLog.max())
 plt.pause(.001)
 
-#### Fourier Filtering ####
+#### Create Mask ####
 yy, xx = np.mgrid[-hafY:hafY, -hafX:hafX]
+
+# Dist image and radial sinusoid
 distImg  = np.sqrt(xx**2 + yy**2)
+distImg = distImg * 2. * np.pi / float(xSize)
+radialImg = np.cos(distImg  * float(int(freqRad )))
+
+# Angle image and circumferential sinusoid
 angleImg = np.arctan2(yy,xx)
-radialImg = np.cos(distImg  / float(int(freqRad )))
-circImg   = np.cos((angleImg + angle) * float(int(freqCirc)))
-mergeImg  = radialImg * circImg
+circumImg   = np.cos((angleImg + angle) * float(int(freqAng)))
+
+mergeImg  = radialImg * circumImg
 maskImg   = (mergeImg > thresh)
 xmask   = ma.make_mask(maskImg)
 filtImg = fourShft * xmask
@@ -130,7 +136,7 @@ axSlider2.set_yticks([])
 
 slider1 = Slider(axSlider1, 'radial', 0.0, 50., valinit=25.)
 slider2 = Slider(axSlider2, 'angular', 0.0, 20., valinit=10.)
-freqRad, freqCirc = slider1.val, slider2.val
+freqRad, freqAng = slider1.val, slider2.val
 
 # Filter angular sliders
 axSlider3 = fig.add_axes([0.7, 0.125, 0.234, 0.04])
@@ -147,9 +153,9 @@ slider4 = Slider(axSlider4, 'thresh', -1., 1., valinit=0.)
 angle, thresh = slider3.val, slider4.val
 
 def update():
-    radialImg = np.cos(distImg  / float(int(freqRad )))
-    circImg   = np.cos((angleImg + angle) * float(int(freqCirc)))
-    mergeImg  = (radialImg + circImg)
+    radialImg = np.cos(distImg  * float(int(freqRad )))
+    circumImg   = np.cos((angleImg + angle) * float(int(freqAng)))
+    mergeImg  = (radialImg + circumImg)
     maskImg = (mergeImg > thresh)
     xmask = ma.make_mask(maskImg)
     filtImg = fourShft * xmask
@@ -169,11 +175,11 @@ def update1(val):
     update()
 
 def update2(val):
-    global freqCirc
-    diff = max((freqRad - freqCirc), 0.)
-    freqCirc = slider2.val
+    global freqAng
+    diff = max((freqRad - freqAng), 0.)
+    freqAng = slider2.val
     if slidersLocked:
-        val1 = freqCirc - diff
+        val1 = freqAng - diff
         slider1.set_val(val1)
     update()
 
