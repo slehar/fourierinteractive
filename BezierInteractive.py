@@ -82,52 +82,56 @@ ySize, xSize = (512,512)
 hafY, hafX = int(ySize/2), int(xSize/2)
 yy, xx = np.mgrid[-hafY:hafY, -hafX:hafX]
 
+# Distance image & radial image
 distImg = np.sqrt(xx**2 + yy**2)
-radialImg = np.cos(distImg / float(int(freqRad)))
+distImg = distImg * 2.*np.pi / 512.
+radialImg = np.cos(distImg * float(int(freqRad)))
 plt.sca(axRad)
 radialPlot = plt.imshow(radialImg, cmap='gray')
 
+# Angle image and circumferential image
 angleImg = np.arctan2(yy,xx)
 circumImg = np.cos(angleImg * float(int(freqAng)))
 plt.sca(axAng)
 circPlot = plt.imshow(circumImg, cmap='gray')
 
+# Sum and product images
 multImg = (radialImg * circumImg)
 sumImg  = (radialImg + circumImg)
 
 plt.sca(axMask)
 mergePlot = plt.imshow(multImg, cmap='gray', origin='lower')
 
-# Filter radius sliders
+# Radial frequency slider
 axSlider1 = fig.add_axes([0.3, 0.125, 0.234, 0.04])
 axSlider1.set_xticks([])
 axSlider1.set_yticks([])
+slider1 = Slider(axSlider1, 'radial', 0.0, 20., valinit=10.)
+freqRad = slider1.val
 
+# Angular frequency slider
 axSlider2 = fig.add_axes([0.3, 0.05, 0.237, 0.04])
 axSlider2.set_xticks([])
 axSlider2.set_yticks([])
-
-slider1 = Slider(axSlider1, 'radial', 0.0, 50., valinit=25.)
 slider2 = Slider(axSlider2, 'angular', 0.0, 20., valinit=10.)
-freqRad, freqAng = slider1.val, slider2.val
+freqAng = slider2.val
 
 # Filter angular sliders
 axSlider3 = fig.add_axes([0.7, 0.125, 0.234, 0.04])
 axSlider3.set_xticks([])
 axSlider3.set_yticks([])
+slider3 = Slider(axSlider3, 'sum/prod',  0., 1., valinit=.5)
+sumProd = slider3.val
 
-#axSlider4 = plt.axes([0.7, 0.05, 0.237, 0.04])
 axSlider4 = fig.add_axes([0.7, 0.05, 0.237, 0.04])
 axSlider4.set_xticks([])
 axSlider4.set_yticks([])
-
-slider3 = Slider(axSlider3, 'sum/prod',  0., 1., valinit=.5)
 slider4 = Slider(axSlider4, 'thresh',    0., 1., valinit=0.)
-sumProd, thresh = slider3.val, slider4.val
+thresh = slider4.val
 
 def update():
     
-    radialImg = np.cos(distImg / float(int(freqRad)))
+    radialImg = np.cos(distImg * float(int(freqRad)))
     plt.sca(axRad)
     radialPlot.set_data(radialImg)
 
