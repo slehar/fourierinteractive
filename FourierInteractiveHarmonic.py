@@ -129,7 +129,7 @@ axSlider2.set_xticks([])
 axSlider2.set_yticks([])
 
 slider1 = Slider(axSlider1, 'radial', 0.0, 50., valinit=25.)
-slider2 = Slider(axSlider2, 'circum', 0.0, 20., valinit=10.)
+slider2 = Slider(axSlider2, 'angular', 0.0, 20., valinit=10.)
 freqRad, freqCirc = slider1.val, slider2.val
 
 # Filter angular sliders
@@ -149,7 +149,7 @@ angle, thresh = slider3.val, slider4.val
 def update():
     radialImg = np.cos(distImg  / float(int(freqRad )))
     circImg   = np.cos((angleImg + angle) * float(int(freqCirc)))
-    mergeImg  = radialImg * circImg
+    mergeImg  = (radialImg + circImg)
     maskImg = (mergeImg > thresh)
     xmask = ma.make_mask(maskImg)
     filtImg = fourShft * xmask
