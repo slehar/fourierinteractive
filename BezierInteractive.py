@@ -5,8 +5,8 @@ BezierInteractive.py
 Not actually a true Bezier curve, this is an interactive exploration
 of Radial and Angular periodicity, allowing the radial/angular
 frequency to be adjusted by sliders, and the radial and angular images
-are combined additively and multiplicatively, also controlled by 
-sliders.
+are combined additively and multiplicatively, and a threshold applied,
+also controlled by sliders.
 
 Created on Mon Dec 19 09:37:14 2016
 
@@ -68,7 +68,7 @@ axRad.set_title('Radial')
 axAng = fig.add_axes([.4, .2, .5/winAspect, .7])
 axAng.axes.set_xticks([])
 axAng.axes.set_yticks([])
-axAng.set_title('Circumf')
+axAng.set_title('Angular')
 
 # Axes for Mask
 axMask = fig.add_axes([.7, .2, .5/winAspect, .7])
@@ -84,7 +84,7 @@ yy, xx = np.mgrid[-hafY:hafY, -hafX:hafX]
 
 # Distance image & radial image
 distImg = np.sqrt(xx**2 + yy**2)
-distImg = distImg * 2.*np.pi / 512.
+distImg = distImg * 2. * np.pi / float(xSize)
 radialImg = np.cos(distImg * float(int(freqRad)))
 plt.sca(axRad)
 radialPlot = plt.imshow(radialImg, cmap='gray')
@@ -116,13 +116,14 @@ axSlider2.set_yticks([])
 slider2 = Slider(axSlider2, 'angular', 0.0, 20., valinit=10.)
 freqAng = slider2.val
 
-# Filter angular sliders
+# Sum / Product slider
 axSlider3 = fig.add_axes([0.7, 0.125, 0.234, 0.04])
 axSlider3.set_xticks([])
 axSlider3.set_yticks([])
 slider3 = Slider(axSlider3, 'sum/prod',  0., 1., valinit=.5)
 sumProd = slider3.val
 
+# Threshold slider
 axSlider4 = fig.add_axes([0.7, 0.05, 0.237, 0.04])
 axSlider4.set_xticks([])
 axSlider4.set_yticks([])
@@ -132,11 +133,9 @@ thresh = slider4.val
 def update():
     
     radialImg = np.cos(distImg * float(int(freqRad)))
-    plt.sca(axRad)
     radialPlot.set_data(radialImg)
 
     circImg = np.cos(angleImg * float(int(freqAng)))
-    plt.sca(axAng)
     circPlot.set_data(circImg)
 
     sumImg  = (radialImg + circImg)
@@ -147,7 +146,6 @@ def update():
     xmask = ma.make_mask(maskImg)
     filtImg = mergeImg * xmask
 
-    plt.sca(axMask)
     mergePlot.set_data(filtImg)
     plt.pause(.001)
 
