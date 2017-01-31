@@ -18,7 +18,6 @@ from   matplotlib.widgets import Slider
 from   matplotlib.widgets import CheckButtons
 import numpy as np
 import numpy.ma as ma
-import sys
 
 # Global Variables
 freqRad = 25.
@@ -37,10 +36,8 @@ fig.canvas.set_window_title('Bezier Interactive')
 
 # Keypress 'q' to quit callback function
 def press(event):
-    sys.stdout.flush()
     if event.key == 'q':
         plt.close()
-
 # Connect keypress event to callback function
 fig.canvas.mpl_connect('key_press_event', press)
 
@@ -49,14 +46,11 @@ rax = plt.axes([0.2, 0.05, 0.1/winAspect, 0.1])
 check = CheckButtons(rax, ['Lock'], [False])
 
 def func(label):
-    global slidersLocked
-    
+    global slidersLocked    
     if   label == 'Lock':
         slidersLocked = check.lines[0][0].get_visible()
     plt.draw()
-    
 check.on_clicked(func)
-
 
 # Axes for  Radial
 axRad = fig.add_axes([.1, .2, .5/winAspect, .7])
@@ -75,32 +69,6 @@ axMask = fig.add_axes([.7, .2, .5/winAspect, .7])
 axMask.axes.set_xticks([])
 axMask.axes.set_yticks([])
 axMask.set_title('Mask')
-
-
-#### Bezier ####
-ySize, xSize = (512,512)
-hafY, hafX = int(ySize/2), int(xSize/2)
-yy, xx = np.mgrid[-hafY:hafY, -hafX:hafX]
-
-# Distance image & radial image
-distImg = np.sqrt(xx**2 + yy**2)
-distImg = distImg * 2. * np.pi / float(xSize)
-radialImg = np.cos(distImg * float(int(freqRad)))
-plt.sca(axRad)
-radialPlot = plt.imshow(radialImg, cmap='gray')
-
-# Angle image and circumferential image
-angleImg = np.arctan2(yy,xx)
-circumImg = np.cos(angleImg * float(int(freqAng)))
-plt.sca(axAng)
-circPlot = plt.imshow(circumImg, cmap='gray')
-
-# Sum and product images
-multImg = (radialImg * circumImg)
-sumImg  = (radialImg + circumImg)
-
-plt.sca(axMask)
-mergePlot = plt.imshow(multImg, cmap='gray', origin='lower')
 
 # Radial frequency slider
 axSlider1 = fig.add_axes([0.3, 0.125, 0.234, 0.04])
@@ -129,6 +97,32 @@ axSlider4.set_xticks([])
 axSlider4.set_yticks([])
 slider4 = Slider(axSlider4, 'thresh',    0., 1., valinit=0.)
 thresh = slider4.val
+
+
+#### Bezier ####
+ySize, xSize = (512,512)
+hafY, hafX = int(ySize/2), int(xSize/2)
+yy, xx = np.mgrid[-hafY:hafY, -hafX:hafX]
+
+# Distance image & radial image
+distImg = np.sqrt(xx**2 + yy**2)
+distImg = distImg * 2. * np.pi / float(xSize)
+radialImg = np.cos(distImg * float(int(freqRad)))
+plt.sca(axRad)
+radialPlot = plt.imshow(radialImg, cmap='gray')
+
+# Angle image and circumferential image
+angleImg = np.arctan2(yy,xx)
+circumImg = np.cos(angleImg * float(int(freqAng)))
+plt.sca(axAng)
+circPlot = plt.imshow(circumImg, cmap='gray')
+
+# Sum and product images
+prodImg = (radialImg * circumImg)
+sumImg  = (radialImg + circumImg)
+
+plt.sca(axMask)
+mergePlot = plt.imshow(prodImg, cmap='gray', origin='lower')
 
 def update():
     

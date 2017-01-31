@@ -17,8 +17,6 @@ import numpy.ma as ma
 import sys
 
 # Global Variables
-#rad1 = 0.
-#rad2 = .15
 freqRad = 25.
 freqAng = 10.
 slidersLocked = False
@@ -45,7 +43,6 @@ def press(event):
     sys.stdout.flush()
     if event.key == 'q':
         plt.close()
-
 # Connect keypress event to callback function
 fig.canvas.mpl_connect('key_press_event', press)
 
@@ -55,11 +52,9 @@ check = CheckButtons(rax, ['Lock'], [False])
 
 def func(label):
     global slidersLocked
-    
     if   label == 'Lock':
         slidersLocked = check.lines[0][0].get_visible()
-    plt.draw()
-    
+    plt.draw()    
 check.on_clicked(func)
 
 # Axes for Original Image
@@ -86,9 +81,8 @@ fourImg  = np.fft.fft2(imgNp)
 fourShft = np.fft.fftshift(fourImg)
 fourLog  = np.log(np.abs(fourShft))
 
-fourPlot = plt.imshow(fourLog, cmap='gray',
-                      vmin=fourLog.min(),
-                      vmax=fourLog.max())
+#plt.sca(axFour)
+#fourPlot = plt.imshow(fourLog, cmap='gray')
 plt.pause(.001)
 
 #### Create Mask ####
@@ -108,7 +102,7 @@ maskImg   = (mergeImg > thresh)
 xmask   = ma.make_mask(maskImg)
 filtImg = fourShft * xmask
 filtLog = np.log(np.maximum(np.abs(filtImg),1.))
-
+plt.sca(axFour)
 fourPlot = plt.imshow(filtLog, cmap='gray')
 plt.pause(.001)
 
@@ -122,6 +116,7 @@ axFourInv.set_title('Inverse Fourier')
 fourIshft = np.fft.ifftshift(filtImg)
 fourInv   = np.fft.ifft2(fourIshft)
 fourReal  = np.real(fourInv)
+plt.sca(axFourInv)
 invPlot = plt.imshow(fourReal, cmap='gray')
 
 # Filter radius sliders
@@ -165,7 +160,8 @@ def update():
     fourIshft = np.fft.ifftshift(filtImg)
     fourInv  = np.fft.ifft2(fourIshft)
     fourReal = np.real(fourInv)
-    invPlot = plt.imshow(fourReal, cmap='gray')       
+#    invPlot = plt.imshow(fourReal, cmap='gray')   
+    invPlot.set_data(fourReal)    
     plt.pause(.001)
 
 

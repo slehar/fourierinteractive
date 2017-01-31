@@ -23,13 +23,13 @@ slidersLocked = False
 angle = 0.
 angleThresh =  -1.
 
-# Get image using finder dialog
+# Get image filename using finder dialog
 root = Tkinter.Tk()
 root.withdraw() # Hide the root window
 imgFile = tkFileDialog.askopenfilename(
     initialfile = 'Rover.png')
 
-# Open figure window
+#### Open figure window ####
 winXSize = 16
 winYSize = 6
 winAspect = winXSize/winYSize
@@ -43,34 +43,31 @@ def press(event):
     sys.stdout.flush()
     if event.key == 'q':
         plt.close()
-
 # Connect keypress event to callback function
 fig.canvas.mpl_connect('key_press_event', press)
 
 # Lock Sliders Checkbox
 rax = plt.axes([0.2, 0.05, 0.1/winAspect, 0.1])
 check = CheckButtons(rax, ['Lock'], [False])
-
 def func(label):
     global slidersLocked
     
     if   label == 'Lock':
         slidersLocked = check.lines[0][0].get_visible()
     plt.draw()
-    
 check.on_clicked(func)
+
+# Read image into numpy array
+imgPil = Image.open(imgFile).convert('LA')
+imgNp = np.array(imgPil.convert('L'))/255.
+ySize, xSize = imgNp.shape
+hafY, hafX = int(ySize/2), int(xSize/2)
 
 # Axes for Original Image
 axOrig = fig.add_axes([.05, .2, .7/winAspect, .7])
 axOrig.axes.set_xticks([])
 axOrig.axes.set_yticks([])
 axOrig.set_title('Original')
-
-# Read image and display
-imgPil = Image.open(imgFile).convert('LA')
-imgNp = np.array(imgPil.convert('L'))/255.
-ySize, xSize = imgNp.shape
-hafY, hafX = int(ySize/2), int(xSize/2)
 imgplot = plt.imshow(imgPil, cmap='gray')
 
 # Axes for Fourier Image
@@ -79,42 +76,11 @@ axFour.axes.set_xticks([])
 axFour.axes.set_yticks([])
 axFour.set_title('Fourier')
 
-# Fourier Transform
-fourImg  = np.fft.fft2(imgNp)
-fourShft = np.fft.fftshift(fourImg)
-fourLog  = np.log(np.abs(fourShft))
-
-fourPlot = plt.imshow(fourLog, cmap='gray',
-                      vmin=fourLog.min(),
-                      vmax=fourLog.max())
-plt.pause(.001)
-
-#### Fourier Filtering ####
-yy, xx = np.mgrid[-hafY:hafY, -hafX:hafX]
-distImg = np.sqrt(xx**2 + yy**2)
-
-angleImg = np.arctan2(yy,xx)
-angleImgFlip = np.fliplr(np.flipud(angleImg))
-
-maskImg = (distImg < (rad2 * xSize))
-xmask = ma.make_mask(maskImg)
-filtImg = fourShft * xmask
-filtLog = np.log(np.maximum(np.abs(filtImg),1.))
-
-fourPlot = plt.imshow(filtLog, cmap='gray')
-plt.pause(.001)
-
 # Axes for Inverse Fourier Image
 axFourInv = fig.add_axes([.56, .2, .7/winAspect, .7])
 axFourInv.axes.set_xticks([])
 axFourInv.axes.set_yticks([])
 axFourInv.set_title('Inverse Fourier')
-
-# Inverse Fourier Transform
-fourIshft = np.fft.ifftshift(filtImg)
-fourInv   = np.fft.ifft2(fourIshft)
-fourReal  = np.real(fourInv)
-invPlot = plt.imshow(fourReal, cmap='gray')
 
 # Filter radius sliders
 axSlider1 = fig.add_axes([0.3, 0.125, 0.234, 0.04])
@@ -125,10 +91,6 @@ axSlider1.set_yticks([])
 axSlider2 = fig.add_axes([0.3, 0.05, 0.237, 0.04])
 axSlider2.set_xticks([])
 axSlider2.set_yticks([])
-
-slider1 = Slider(axSlider1, 'r1', 0.0, xSize, valinit=xSize*rad1)
-slider2 = Slider(axSlider2, 'r2', 0.0, xSize, valinit=xSize*rad2)
-rad1, rad2 = slider1.val, slider2.val
 
 # Filter angular sliders
 axSlider3 = fig.add_axes([0.7, 0.125, 0.234, 0.04])
@@ -144,8 +106,41 @@ slider3 = Slider(axSlider3, 'angle',  -np.pi, np.pi, valinit=0)
 slider4 = Slider(axSlider4, 'thresh', -1., 1., valinit=-1.)
 angle, angleThresh = slider3.val, slider4.val
 
+slider1 = Slider(axSlider1, 'r1', 0.0, xSize, valinit=xSize*rad1)
+slider2 = Slider(axSlider2, 'r2', 0.0, xSize, valinit=xSize*rad2)
+rad1, rad2 = slider1.val, slider2.val
+
+# Fourier Transform
+fourImg  = np.fft.fft2(imgNp)
+fourShft = np.fft.fftshift(fourImg)
+fourLog  = np.log(np.abs(fourShft))
+#plt.sca(axFour)
+#fourPlot = plt.imshow(fourLog, cmap='gray')
+plt.pause(.001)
+
+#### Fourier Filtering ####
+yy, xx = np.mgrid[-hafY:hafY, -hafX:hafX]
+distImg = np.sqrt(xx**2 + yy**2)
+
+angleImg = np.arctan2(yy,xx)
+angleImgFlip = np.fliplr(np.flipud(angleImg))
+
+maskImg = (distImg < (rad2 * xSize))
+xmask = ma.make_mask(maskImg)
+filtImg = fourShft * xmask
+filtLog = np.log(np.maximum(np.abs(filtImg),1.))
+plt.sca(axFour)
+fourPlot = plt.imshow(filtLog, cmap='gray')
+plt.pause(.001)
+
+# Inverse Fourier Transform
+fourIshft = np.fft.ifftshift(filtImg)
+fourInv   = np.fft.ifft2(fourIshft)
+fourReal  = np.real(fourInv)
+plt.sca(axFourInv)
+invPlot = plt.imshow(fourReal, cmap='gray')
+
 def update():
-    global filtImg
     plt.sca(axFour)
     maskR1 = (distImg > rad1)
     maskR2 = (distImg < rad2)
@@ -161,7 +156,7 @@ def update():
     fourIshft = np.fft.ifftshift(filtImg)
     fourInv  = np.fft.ifft2(fourIshft)
     fourReal = np.real(fourInv)
-    invPlot = plt.imshow(fourReal, cmap='gray')       
+    invPlot.set_data(fourReal)
     plt.pause(.001)
 
 def update1(val):
@@ -188,7 +183,7 @@ def update4(val):
     angleThresh = slider4.val
     update()
 
-#    fig.canvas.draw()
+# Attach sliders to their callback functions
 slider1.on_changed(update1)
 slider2.on_changed(update2)
 slider3.on_changed(update3)
@@ -197,7 +192,6 @@ slider4.on_changed(update4)
 # Show image
 plt.ion()
 plt.sca(axFour)
-#plt.pause(.001)
 plt.show()
 
 # Pop fig window to top]]
