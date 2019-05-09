@@ -190,15 +190,15 @@ slider3.on_changed(update3)
 slider4.on_changed(update4)
 
 # Show image
-plt.ion()
+# plt.ion()
 plt.sca(axFour)
 plt.show()
 
 # Pop fig window to top]]
-figmgr=plt.get_current_fig_manager()
-figmgr.canvas.manager.window.raise_()
-geom=figmgr.window.geometry()
-(xLoc,yLoc,dxWidth,dyHeight)=geom.getRect()
-figmgr.window.setGeometry(10,10,dxWidth,dyHeight)
+# figmgr=plt.get_current_fig_manager()
+# figmgr.canvas.manager.window.raise_()
+# geom=figmgr.window.geometry()
+# (xLoc,yLoc,dxWidth,dyHeight)=geom.getRect()
+# figmgr.window.setGeometry(10,10,dxWidth,dyHeight)
  
 
