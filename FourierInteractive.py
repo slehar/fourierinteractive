@@ -11,23 +11,28 @@ import matplotlib.pyplot as plt
 from   matplotlib.widgets import Slider
 from   matplotlib.widgets import CheckButtons
 from   PIL import Image
-import Tkinter, tkFileDialog
+import tkinter as tk
+import tkinter.filedialog
+
+# import Tkinter, tkFileDialog
+# import tkinter, tkfiledialog
 import numpy as np
 import numpy.ma as ma
 import sys
 
 # Global Variables
-rad1 = 0.
+rad1 = 0.01
 rad2 = .15
 slidersLocked = False
 angle = 0.
 angleThresh =  -1.
 
 # Get image filename using finder dialog
-root = Tkinter.Tk()
-root.withdraw() # Hide the root window
-imgFile = tkFileDialog.askopenfilename(
-    initialfile = 'Rover.png')
+# root = Tkinter.Tk()
+root = tk.Tk()
+# root.withdraw() # Hide the root window
+imgFile = tk.filedialog.askopenfilename(initialfile = 'Rover.png')
+# imgFile = tkFileDialog.askopenfilename(initialfile = 'Rover.png')
 
 #### Open figure window ####
 winXSize = 16
@@ -35,7 +40,7 @@ winYSize = 6
 winAspect = winXSize/winYSize
 plt.close('all')
 fig = plt.figure(figsize=(winXSize, winYSize))
-fig.canvas.set_window_title('Fourier Interactive')
+# fig.canvas.set_window_title('Fourier Interactive')
 
 # Keypress 'q' to quit callback function
 def press(event):
@@ -113,7 +118,8 @@ rad1, rad2 = slider1.val, slider2.val
 # Fourier Transform
 fourImg  = np.fft.fft2(imgNp)
 fourShft = np.fft.fftshift(fourImg)
-fourLog  = np.log(np.abs(fourShft))
+fourShftNZ = (fourShft > 0)
+fourLog  = np.log(np.abs(fourShftNZ))
 #plt.sca(axFour)
 #fourPlot = plt.imshow(fourLog, cmap='gray')
 plt.pause(.001)
@@ -166,11 +172,13 @@ def update1(val):
 
 def update2(val):
     global rad2
-    diff = max((rad2 - rad1), 0.)
+#    diff = max((rad2 - rad1), 0.)
+    ratio = max(rad2/rad1, 0.1)
     rad2 = slider2.val
     if slidersLocked:
-        val1 = rad2 - diff
-        slider1.set_val(val1)
+#        val1 = rad2 - diff
+        val1 = int(rad2 / ratio)
+        slider1.set_val(int(val1))
     update()
 
 def update3(val):
@@ -190,15 +198,15 @@ slider3.on_changed(update3)
 slider4.on_changed(update4)
 
 # Show image
-plt.ion()
+# plt.ion()
 plt.sca(axFour)
 plt.show()
 
 # Pop fig window to top]]
-figmgr=plt.get_current_fig_manager()
-figmgr.canvas.manager.window.raise_()
-geom=figmgr.window.geometry()
-(xLoc,yLoc,dxWidth,dyHeight)=geom.getRect()
-figmgr.window.setGeometry(10,10,dxWidth,dyHeight)
+# figmgr=plt.get_current_fig_manager()
+# figmgr.canvas.manager.window.raise_()
+# geom=figmgr.window.geometry()
+# (xLoc,yLoc,dxWidth,dyHeight)=geom.getRect()
+# figmgr.window.setGeometry(10,10,dxWidth,dyHeight)
  
 
