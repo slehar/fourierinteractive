@@ -30,9 +30,9 @@ angleThresh =  -1.
 #%% Get image filename using finder dialog
 root = tk.Tk()
 root.withdraw() # Hide the root window
-imgFile = tk.filedialog.askopenfile(initialfile = 'Rover.png',
-                                    initialdir='.')
-# imgFile = "Rover.png"
+# imgFile = tk.filedialog.askopenfile(initialfile = 'Rover.png',
+#                                     initialdir='.')
+imgFile = "Rover.png"
 root.update()
 # root.quit()
 
@@ -63,6 +63,29 @@ def func(label):
     plt.draw()
 check.on_clicked(func)
 
+#%% Filter slider Axes
+
+# slider1 Radius1 slider
+axSlider1 = fig.add_axes([0.3, 0.125, 0.234, 0.04])
+axSlider1.set_xticks([])
+axSlider1.set_yticks([])
+
+# axSlider2 = plt.axes([0.3, 0.05, 0.237, 0.04])
+# slider 2 Radius2 slider
+axSlider2 = fig.add_axes([0.3, 0.05, 0.237, 0.04])
+axSlider2.set_xticks([])
+axSlider2.set_yticks([])
+
+# slider3 Angular slider
+axSlider3 = fig.add_axes([0.7, 0.125, 0.234, 0.04])
+axSlider3.set_xticks([])
+axSlider3.set_yticks([])
+
+#axSlider4 = plt.axes([0.7, 0.05, 0.237, 0.04])
+# slider4 Angular Threshold slider
+axSlider4 = fig.add_axes([0.7, 0.05, 0.237, 0.04])
+axSlider4.set_xticks([])
+axSlider4.set_yticks([])
 
 #%% Axes for Original Image
 axOrig = fig.add_axes([.05, .2, .7/winAspect, .7])
@@ -75,9 +98,25 @@ axOrig.set_title('Original')
 # imgPil.close()
 imgPil = Image.open(imgFile).convert("LA")
 imgNp = np.array(imgPil.convert('L'))/255.
-ySize, xSize = imgNp.shape
-hafY, hafX = int(ySize/2), int(xSize/2)
+npYSize, npXSize = imgNp.shape
+hafY, hafX = int(npYSize/2), int(npXSize/2)
 imgPlot = plt.imshow(imgPil, cmap='gray')
+
+# axOrig.set_data(imgPil)
+
+
+#%% 
+# Filter Sliders
+slider1 = Slider(axSlider1, 'r1', 0.0, npXSize, valinit=0)
+slider2 = Slider(axSlider2, 'r2', 0.0, npXSize, valinit=npXSize/2)
+# freqRad, freqAng = slider1.val, slider2.val
+rad1, rad2 = slider1.val, slider2.val
+
+
+slider3 = Slider(axSlider3, 'angle',  -np.pi, np.pi, valinit=0)
+slider4 = Slider(axSlider4, 'thresh', -1., 1., valinit=-1.)
+angle, angleThresh = slider3.val, slider4.val
+
 
 #%% Axes for Fourier Image
 axFour = fig.add_axes([.3, .2, .7/winAspect, .7])
@@ -93,7 +132,7 @@ plt.pause(.001)
 plt.sca(axFour)
 fourPlot = plt.imshow(fourLog, cmap='gray')
 # fourPlot = plt.imshow(imgPil, cmap='gray')
-# fourPlot.set_data(fourLog) #!!!
+# fourPlot.set_data(fourLog)
 plt.show()
 
 
@@ -134,45 +173,9 @@ fourInvReal  = np.real(fourInv)
 fourInvPlot = plt.imshow(fourInvReal, cmap='gray')
 plt.sca(axFourInv)
 invPlot = plt.imshow(fourInvReal, cmap='gray')
-invPlot.set_data(fourInvReal)
+# invPlot.set_data(fourInvReal)
 
 
-
-#%% Filter slider Axes
-
-# slider1 Radius1 slider
-axSlider1 = fig.add_axes([0.3, 0.125, 0.234, 0.04])
-axSlider1.set_xticks([])
-axSlider1.set_yticks([])
-
-# axSlider2 = plt.axes([0.3, 0.05, 0.237, 0.04])
-# slider 2 Radius2 slider
-axSlider2 = fig.add_axes([0.3, 0.05, 0.237, 0.04])
-axSlider2.set_xticks([])
-axSlider2.set_yticks([])
-
-# slider3 Angular slider
-axSlider3 = fig.add_axes([0.7, 0.125, 0.234, 0.04])
-axSlider3.set_xticks([])
-axSlider3.set_yticks([])
-
-#axSlider4 = plt.axes([0.7, 0.05, 0.237, 0.04])
-# slider4 Angular Threshold slider
-axSlider4 = fig.add_axes([0.7, 0.05, 0.237, 0.04])
-axSlider4.set_xticks([])
-axSlider4.set_yticks([])
-
-#%% 
-# Filter Sliders
-slider1 = Slider(axSlider1, 'r1', 0.0, xSize, valinit=0)
-slider2 = Slider(axSlider2, 'r2', 0.0, xSize, valinit=xSize/2)
-# freqRad, freqAng = slider1.val, slider2.val
-rad1, rad2 = slider1.val, slider2.val
-
-
-slider3 = Slider(axSlider3, 'angle',  -np.pi, np.pi, valinit=0)
-slider4 = Slider(axSlider4, 'thresh', -1., 1., valinit=-1.)
-angle, angleThresh = slider3.val, slider4.val
 
 
 #%% update
@@ -193,7 +196,7 @@ def update():
     filtLog = np.log(np.maximum(np.abs(filtImg),1.))
     
     filtPlot = plt.imshow(filtLog, cmap='gray')   
-    filtPlot.set_data(filtLog)
+    # filtPlot.set_data(filtLog)
     
     plt.sca(axFourInv)    
     fourIshft = np.fft.ifftshift(filtImg)
@@ -201,7 +204,7 @@ def update():
     fourInvReal = np.real(fourInv)
     
     fourInvPlot = plt.imshow(fourInvReal, cmap='gray')
-    fourInvPlot.set_data(fourInvReal)
+    # fourInvPlot.set_data(fourInvReal)
     
     plt.pause(.001)
     plt.show()
@@ -211,18 +214,19 @@ def update1(val):
     global rad1
     if not slidersLocked:
         rad1 = slider1.val
-        update()
+    update()
 
 def update2(val):
     global rad1, rad2
     
     rad2 = slider2.val  
     if slidersLocked:       
-        ratio = rad2/rad1
+        ratio = rad1 / rad2
         rad1 = rad2 * ratio
         if rad1 < 0:
             rad1 = 0
         slider1.set_val(rad1)
+        plt.show()
     update()
 
 def update3(val):
