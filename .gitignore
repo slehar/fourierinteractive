@@ -2,3 +2,4 @@
 *.swp
 *.xcf
 ornament.jpg
+__pycache__/

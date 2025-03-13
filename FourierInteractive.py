@@ -42,6 +42,7 @@ winYSize = 6
 winAspect = winXSize/winYSize
 plt.close('all')
 fig = plt.figure(figsize=(winXSize, winYSize))
+fig.suptitle("Fourier Interactive", fontsize=18)
 
 #%% Keypress 'q' to quit callback function
 def press(event):
