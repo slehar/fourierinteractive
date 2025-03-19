@@ -11,11 +11,11 @@ Available on my GitHub site
 import matplotlib.pyplot as plt
 from   matplotlib.widgets import Slider
 from   matplotlib.widgets import CheckButtons
+import numpy as np
+import numpy.ma as ma
 from   PIL import Image
 import tkinter as tk
 import tkinter.filedialog
-import numpy as np
-import numpy.ma as ma
 import sys
 
 
@@ -30,11 +30,10 @@ angleThresh =  -1.
 #%% Get image filename using finder dialog
 root = tk.Tk()
 root.withdraw() # Hide the root window
-# imgFile = tk.filedialog.askopenfile(initialfile = 'Rover.png',
-#                                     initialdir='.')
-imgFile = "Rover.png"
+imgFile = tk.filedialog.askopenfilename(initialfile = 'Rover.png',
+                                    initialdir='.')
 root.update()
-# root.quit()
+root.quit()
 
 #%%### Open figure window ####
 winXSize = 16
