@@ -8,6 +8,7 @@ Available on my GitHub site
 @author: slehar
 """
 
+#%% Imports
 import matplotlib.pyplot as plt
 from   matplotlib.widgets import Slider
 from   matplotlib.widgets import CheckButtons
@@ -17,6 +18,7 @@ from   PIL import Image
 import tkinter as tk
 import tkinter.filedialog
 import sys
+
 
 
 #%%  Global Variables
@@ -31,9 +33,11 @@ angleThresh =  -1.
 root = tk.Tk()
 root.withdraw() # Hide the root window
 imgFile = tk.filedialog.askopenfilename(initialfile = 'Rover.png',
-                                    initialdir='.')
+                                        initialdir='.')
 root.update()
 root.quit()
+
+# imgFile = 'Rover.png'
 
 #%%### Open figure window ####
 winXSize = 16
@@ -107,14 +111,14 @@ imgPlot = plt.imshow(imgPil, cmap='gray')
 
 #%% 
 # Filter Sliders
-slider1 = Slider(axSlider1, 'r1', 0.0, npXSize, valinit=0)
-slider2 = Slider(axSlider2, 'r2', 0.0, npXSize, valinit=npXSize/2)
+slider1 = Slider(axSlider1, 'r1', 0.0, npXSize, valinit=92)
+slider2 = Slider(axSlider2, 'r2', 0.0, npXSize, valinit=142)
 # freqRad, freqAng = slider1.val, slider2.val
 rad1, rad2 = slider1.val, slider2.val
 
 
-slider3 = Slider(axSlider3, 'angle',  -np.pi, np.pi, valinit=0)
-slider4 = Slider(axSlider4, 'thresh', -1., 1., valinit=-1.)
+slider3 = Slider(axSlider3, 'angle',  -np.pi, np.pi, valinit=-1.5)
+slider4 = Slider(axSlider4, 'thresh', -1., 1., valinit=-.3)
 angle, angleThresh = slider3.val, slider4.val
 
 
@@ -124,7 +128,7 @@ axFour.axes.set_xticks([])
 axFour.axes.set_yticks([])
 axFour.set_title('Fourier')
 
-# Fourier Transform
+#%% Fourier Transform
 fourImg  = np.fft.fft2(imgNp)
 fourShft = np.fft.fftshift(fourImg)
 fourLog  = np.log(np.abs(fourShft))
@@ -136,7 +140,7 @@ fourPlot = plt.imshow(fourLog, cmap='gray')
 plt.show()
 
 
-#### Fourier Filtering ####
+#%%#### Fourier Filtering ####
 yy, xx = np.mgrid[-hafY:hafY, -hafX:hafX]
 distImg = np.sqrt(xx**2 + yy**2)
 
@@ -160,13 +164,13 @@ FourPlot = plt.imshow(filtLog, cmap='gray')
 plt.pause(.001)
 
 
-# Axes for Inverse Fourier Image
+#%% Axes for Inverse Fourier Image
 axFourInv = fig.add_axes([.56, .2, .7/winAspect, .7])
 axFourInv.axes.set_xticks([])
 axFourInv.axes.set_yticks([])
 axFourInv.set_title('Inverse Fourier')
 
-#### Inverse Fourier Transform
+#%%### Inverse Fourier Transform
 fourIshft = np.fft.ifftshift(filtImg)
 fourInv   = np.fft.ifft2(fourIshft)
 fourInvReal  = np.real(fourInv)
