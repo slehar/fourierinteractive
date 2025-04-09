@@ -109,7 +109,7 @@ imgPlot = plt.imshow(imgPil, cmap='gray')
 # axOrig.set_data(imgPil)
 
 
-#%% 
+#%% Define Filter Sliders
 # Filter Sliders
 slider1 = Slider(axSlider1, 'r1', 0.0, npXSize, valinit=92)
 slider2 = Slider(axSlider2, 'r2', 0.0, npXSize, valinit=142)
@@ -215,18 +215,22 @@ def update():
 
 #%% Update sliders
 def update1(val):
-    global rad1
-    if not slidersLocked:
-        rad1 = slider1.val
+    global rad1, rad2
+    oldRad1 = rad1
+    rad1 = slider1.val
+    radRatio = rad1 / oldRad1
+    if slidersLocked:
+        rad2 = min((slider2.val * radRatio), npXSize)
+        slider2.val = rad2
     update()
 
 def update2(val):
     global rad1, rad2
-    
+    oldRad2 = rad2
     rad2 = slider2.val  
+    radRatio = rad2 / oldRad2
     if slidersLocked:       
-        ratio = rad1 / rad2
-        rad1 = rad2 * ratio
+        rad1 = rad1 * radRatio
         if rad1 < 0:
             rad1 = 0
         slider1.set_val(rad1)
@@ -249,7 +253,7 @@ slider2.on_changed(update2)
 slider3.on_changed(update3)
 slider4.on_changed(update4)
 
-#%%
+#%% Show Image
 
 # Show image
 plt.sca(axFour)
