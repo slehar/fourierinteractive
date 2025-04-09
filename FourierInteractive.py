@@ -58,11 +58,11 @@ fig.canvas.mpl_connect('key_press_event', press)
 
 #%% Lock Sliders Checkbox
 rax = plt.axes([0.2, 0.05, 0.1/winAspect, 0.1])
-check = CheckButtons(rax, ['Lock'], [False])
+check = CheckButtons(rax, [' Lock'], [False])
 def func(label):
     global slidersLocked
     
-    if   label == 'Lock':
+    if   label == ' Lock':
         slidersLocked = check.lines[0][0].get_visible()
     plt.draw()
 check.on_clicked(func)
