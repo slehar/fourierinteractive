@@ -12,14 +12,13 @@ Available on my GitHub site
 import matplotlib.pyplot as plt
 from   matplotlib.widgets import Slider
 from   matplotlib.widgets import CheckButtons
+from   matplotlib.widgets import Button
 import numpy as np
 import numpy.ma as ma
 from   PIL import Image
 import tkinter as tk
 import tkinter.filedialog
 import sys
-
-
 
 #%%  Global Variables
 rad1 = 0.01
@@ -28,10 +27,9 @@ slidersLocked = False
 angle = 0.
 angleThresh =  -1.
     
-
 #%% Get image filename using finder dialog
 root = tk.Tk()
-root.withdraw() # Hide the root window
+# root.withdraw() # Hide the root window
 imgFile = tk.filedialog.askopenfilename(initialfile = 'Rover.png',
                                         initialdir='.')
 root.update()
@@ -39,7 +37,7 @@ root.quit()
 
 # imgFile = 'Rover.png'
 
-#%%### Open figure window ####
+#%% Open figure window
 winXSize = 16
 winYSize = 6
 winAspect = winXSize/winYSize
@@ -67,6 +65,17 @@ def func(label):
     plt.draw()
 check.on_clicked(func)
 
+
+#%% Load Image Button
+
+# axButt = fig.add.axes([0.1, 0.05, 0.1/winAspect, 0.2])
+axButt = plt.axes([0.1, 0.05, 0.2/winAspect, 0.1])
+
+Butt = Button(axButt, 'Load Image')
+def buttFunc(self):
+    print('Button Pressed')
+Butt.on_clicked(buttFunc)
+    
 #%% Filter slider Axes
 
 # slider1 Radius1 slider
@@ -98,8 +107,6 @@ axOrig.axes.set_yticks([])
 axOrig.set_title('Original')
 
 #%% Read image into numpy array
-# imgPil = Image.open(imgFile)
-# imgPil.close()
 imgPil = Image.open(imgFile).convert("LA")
 imgNp = np.array(imgPil.convert('L'))/255.
 npYSize, npXSize = imgNp.shape
@@ -140,7 +147,7 @@ fourPlot = plt.imshow(fourLog, cmap='gray')
 plt.show()
 
 
-#%%#### Fourier Filtering ####
+#%% Fourier Filtering
 yy, xx = np.mgrid[-hafY:hafY, -hafX:hafX]
 distImg = np.sqrt(xx**2 + yy**2)
 
@@ -170,7 +177,7 @@ axFourInv.axes.set_xticks([])
 axFourInv.axes.set_yticks([])
 axFourInv.set_title('Inverse Fourier')
 
-#%%### Inverse Fourier Transform
+#%% Inverse Fourier Transform
 fourIshft = np.fft.ifftshift(filtImg)
 fourInv   = np.fft.ifft2(fourIshft)
 fourInvReal  = np.real(fourInv)
@@ -247,7 +254,7 @@ def update4(val):
     angleThresh = slider4.val
     update()
 
-# Attach sliders to their callback functions
+#%% Attach sliders to their callback functions
 slider1.on_changed(update1)
 slider2.on_changed(update2)
 slider3.on_changed(update3)
